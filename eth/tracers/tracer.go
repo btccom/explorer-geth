@@ -298,12 +298,15 @@ type Tracer struct {
 	contractWrapper *contractWrapper // Wrapper around the contract object
 	dbWrapper       *dbWrapper       // Wrapper around the VM environment
 
-	pcValue     *uint   // Swappable pc value wrapped by a log accessor
-	gasValue    *uint   // Swappable gas value wrapped by a log accessor
-	costValue   *uint   // Swappable cost value wrapped by a log accessor
-	depthValue  *uint   // Swappable depth value wrapped by a log accessor
-	errorValue  *string // Swappable error value wrapped by a log accessor
-	refundValue *uint   // Swappable refund value wrapped by a log accessor
+	pcValue           *uint   // Swappable pc value wrapped by a log accessor
+	gasValue          *uint   // Swappable gas value wrapped by a log accessor
+	costValue         *uint   // Swappable cost value wrapped by a log accessor
+	depthValue        *uint   // Swappable depth value wrapped by a log accessor
+	errorValue        *string // Swappable error value wrapped by a log accessor
+	refundValue       *uint   // Swappable refund value wrapped by a log accessor
+	returnData        *[]byte // Swappable return data wrapped by a log accessor
+	availableGasValue *uint   // Swappable available gas value for this specific call wrapped by a log accessor
+	opErrorValue      *string // Swappable error value for this specific call wrapped by a log accessor. NOTE: the error is for the previous call trace
 
 	ctx map[string]interface{} // Transaction context gathered throughout execution
 	err error                  // Error, if one has occurred
@@ -331,18 +334,20 @@ func New(code string, ctx *Context) (*Tracer, error) {
 		code = tracer
 	}
 	tracer := &Tracer{
-		vm:              duktape.New(),
-		ctx:             make(map[string]interface{}),
-		opWrapper:       new(opWrapper),
-		stackWrapper:    new(stackWrapper),
-		memoryWrapper:   new(memoryWrapper),
-		contractWrapper: new(contractWrapper),
-		dbWrapper:       new(dbWrapper),
-		pcValue:         new(uint),
-		gasValue:        new(uint),
-		costValue:       new(uint),
-		depthValue:      new(uint),
-		refundValue:     new(uint),
+		vm:                duktape.New(),
+		ctx:               make(map[string]interface{}),
+		opWrapper:         new(opWrapper),
+		stackWrapper:      new(stackWrapper),
+		memoryWrapper:     new(memoryWrapper),
+		contractWrapper:   new(contractWrapper),
+		dbWrapper:         new(dbWrapper),
+		pcValue:           new(uint),
+		gasValue:          new(uint),
+		costValue:         new(uint),
+		depthValue:        new(uint),
+		refundValue:       new(uint),
+		availableGasValue: new(uint),
+		returnData:        new([]byte),
 	}
 	if ctx.BlockHash != (common.Hash{}) {
 		tracer.ctx["blockHash"] = ctx.BlockHash
@@ -486,6 +491,26 @@ func New(code string, ctx *Context) (*Tracer, error) {
 	tracer.contractWrapper.pushObject(tracer.vm)
 	tracer.vm.PutPropString(logObject, "contract")
 
+	tracer.vm.PushGoFunction(func(ctx *duktape.Context) int { ctx.PushUint(*tracer.availableGasValue); return 1 })
+	tracer.vm.PutPropString(logObject, "getAvailableGas")
+
+	tracer.vm.PushGoFunction(func(ctx *duktape.Context) int {
+		ptr := ctx.PushFixedBuffer(len(*tracer.returnData))
+		copy(makeSlice(ptr, uint(len(*tracer.returnData))), *tracer.returnData)
+		return 1
+	})
+	tracer.vm.PutPropString(logObject, "getReturnData")
+
+	tracer.vm.PushGoFunction(func(ctx *duktape.Context) int {
+		if tracer.opErrorValue != nil {
+			ctx.PushString(*tracer.opErrorValue)
+		} else {
+			ctx.PushUndefined()
+		}
+		return 1
+	})
+	tracer.vm.PutPropString(logObject, "getCallError")
+
 	tracer.vm.PushGoFunction(func(ctx *duktape.Context) int { ctx.PushUint(*tracer.pcValue); return 1 })
 	tracer.vm.PutPropString(logObject, "getPC")
 
@@ -612,6 +637,17 @@ func (jst *Tracer) CaptureState(env *vm.EVM, pc uint64, op vm.OpCode, gas, cost 
 	*jst.costValue = uint(cost)
 	*jst.depthValue = uint(depth)
 	*jst.refundValue = uint(env.StateDB.GetRefund())
+
+	*jst.availableGasValue = uint(env.CallGasTemp)
+	*jst.returnData = rData
+
+	jst.opErrorValue = nil
+	if env.CallErrorTemp != nil {
+		jst.opErrorValue = new(string)
+		*jst.opErrorValue = env.CallErrorTemp.Error()
+
+		env.CallErrorTemp = nil // clean temp error storage, for debug tracing
+	}
 
 	jst.errorValue = nil
 	if err != nil {
