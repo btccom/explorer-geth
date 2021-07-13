@@ -18,25 +18,26 @@ package eth
 
 import (
 	"context"
-	"errors"
 	"encoding/json"
-	"math/big"
-	"sync"
-	"runtime"
+	"errors"
 	"fmt"
+	"math/big"
+	"runtime"
+	"sync"
 	"time"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
-	"github.com/ethereum/go-ethereum/core/vm"
 	"github.com/ethereum/go-ethereum/consensus"
 	"github.com/ethereum/go-ethereum/consensus/ethash"
-	"github.com/ethereum/go-ethereum/internal/ethapi"
-	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/core/state"
 	"github.com/ethereum/go-ethereum/core"
-	"github.com/ethereum/go-ethereum/params"
+	"github.com/ethereum/go-ethereum/core/rawdb"
+	"github.com/ethereum/go-ethereum/core/state"
+	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/core/vm"
 	"github.com/ethereum/go-ethereum/eth/tracers"
+	"github.com/ethereum/go-ethereum/internal/ethapi"
+	"github.com/ethereum/go-ethereum/params"
 	"github.com/ethereum/go-ethereum/rpc"
 )
 
@@ -300,6 +301,11 @@ func (api *PrivateTraceAPI) blockByNumberAndHash(ctx context.Context, number rpc
 	return api.blockByHash(ctx, hash)
 }
 
+func (api *PrivateTraceAPI) GetTransaction(ctx context.Context, txHash common.Hash) (*types.Transaction, common.Hash, uint64, uint64, error) {
+	tx, blockHash, blockNumber, index := rawdb.ReadTransaction(api.eth.ChainDb(), txHash)
+	return tx, blockHash, blockNumber, index, nil
+}
+
 type chainContext struct {
 	api *PrivateTraceAPI
 	ctx context.Context
@@ -482,10 +488,36 @@ func (api *PrivateTraceAPI) traceTx(ctx context.Context, message core.Message, t
 
 // Transaction returns the structured logs created during the execution of EVM
 // and returns them as a JSON object.
-// func (api *PrivateTraceAPI) Transaction(ctx context.Context, hash common.Hash, config *tracers.TraceConfig) (interface{}, error) {
-// 	config = setConfigTracerToParity(config)
-// 	return api.traceTx(ctx, api.eth, hash, config)
-// }
+func (api *PrivateTraceAPI) Transaction(ctx context.Context, hash common.Hash, config *tracers.TraceConfig) (interface{}, error) {
+	config = setConfigTracerToParity(config)
+	_, blockHash, blockNumber, index, err := api.GetTransaction(ctx, hash)
+	if err != nil {
+		return nil, err
+	}
+	// It shouldn't happen in practice.
+	// Maybe in syncing.
+	if blockNumber == 0 {
+		return nil, errors.New("genesis is not traceable")
+	}
+	reexec := defaultTraceReexec
+	if config != nil && config.Reexec != nil {
+		reexec = *config.Reexec
+	}
+	block, err := api.blockByNumberAndHash(ctx, rpc.BlockNumber(blockNumber), blockHash)
+	if err != nil {
+		return nil, err
+	}
+	msg, vmctx, statedb, err := api.eth.stateAtTransaction(block, int(index), reexec)
+	if err != nil {
+		return nil, err
+	}
+	txctx := &txTraceContext{
+		index: int(index),
+		hash:  hash,
+		block: blockHash,
+	}
+	return api.traceTx(ctx, msg, txctx, vmctx, statedb, config)
+}
 
 // PrivateTraceAPI is the collection of Ethereum full node APIs exposed over
 // the private trace endpoint.

@@ -665,6 +665,10 @@ func (jst *Tracer) CaptureFault(env *vm.EVM, pc uint64, op vm.OpCode, gas, cost 
 	if jst.err != nil {
 		return
 	}
+	// clean up op error when CaptureFault is being called directly
+	jst.opErrorValue = nil
+	env.CallErrorTemp = nil // clean temp error storage, for debug tracing
+	
 	// Apart from the error, everything matches the previous invocation
 	jst.errorValue = new(string)
 	*jst.errorValue = err.Error()

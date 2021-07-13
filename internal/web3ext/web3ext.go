@@ -18,18 +18,22 @@
 package web3ext
 
 var Modules = map[string]string{
-	"admin":    AdminJs,
-	"clique":   CliqueJs,
-	"ethash":   EthashJs,
-	"debug":    DebugJs,
-	"eth":      EthJs,
-	"miner":    MinerJs,
-	"net":      NetJs,
-	"personal": PersonalJs,
-	"rpc":      RpcJs,
-	"txpool":   TxpoolJs,
-	"les":      LESJs,
-	"vflux":    VfluxJs,
+	"admin":      AdminJs,
+	"chequebook": ChequebookJs,
+	"clique":     CliqueJs,
+	"ethash":     EthashJs,
+	"debug":      DebugJs,
+	"eth":        EthJs,
+	"miner":      MinerJs,
+	"net":        NetJs,
+	"personal":   PersonalJs,
+	"rpc":        RpcJs,
+	"shh":        ShhJs,
+	"swarmfs":    SwarmfsJs,
+	"txpool":     TxpoolJs,
+	"les":        LESJs,
+	"vflux":      VfluxJs,
+	"trace":      TraceJs,
 }
 
 const CliqueJs = `
@@ -828,5 +832,26 @@ web3._extend({
 			getter: 'vflux_requestStats'
 		}),
 	]
+});
+`
+
+const TraceJs = `
+web3._extend({
+	property: 'trace',
+	methods: [
+		new web3._extend.Method({
+			name: 'block',
+			call: 'trace_block',
+			params: 2,
+			inputFormatter: [null, null]
+		}),
+		new web3._extend.Method({
+			name: 'transaction',
+			call: 'trace_transaction',
+			params: 2,
+			inputFormatter: [null, null]
+		}),
+	],
+	properties: []
 });
 `
