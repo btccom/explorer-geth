@@ -19,7 +19,6 @@ package web3ext
 
 var Modules = map[string]string{
 	"admin":      AdminJs,
-	"chequebook": ChequebookJs,
 	"clique":     CliqueJs,
 	"ethash":     EthashJs,
 	"debug":      DebugJs,
@@ -28,8 +27,6 @@ var Modules = map[string]string{
 	"net":        NetJs,
 	"personal":   PersonalJs,
 	"rpc":        RpcJs,
-	"shh":        ShhJs,
-	"swarmfs":    SwarmfsJs,
 	"txpool":     TxpoolJs,
 	"les":        LESJs,
 	"vflux":      VfluxJs,
