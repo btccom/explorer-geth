@@ -351,6 +351,8 @@ func New(code string, ctx *Context) (*Tracer, error) {
 		returnData:        new([]byte),
 	}
 	if ctx.BlockHash != (common.Hash{}) {
+		// tracer.ctx["blockHash"] = ctx.BlockHash
+		// maybe can use toHex in tracer.js
 		tracer.ctx["blockHash"] = ctx.BlockHash.Hex()
 		if ctx.BlockNumber != 0 {
 			tracer.ctx["blockNumber"] = ctx.BlockNumber
