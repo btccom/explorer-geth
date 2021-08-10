@@ -370,9 +370,10 @@ func (api *PrivateTraceAPI) traceBlock(ctx context.Context, eth *Ethereum, block
 			for task := range jobs {
 				msg, _ := txs[task.index].AsMessage(signer, block.BaseFee())
 				txctx := &tracers.Context{
-					TxIndex:   task.index,
-					TxHash:    txs[task.index].Hash(),
-					BlockHash: blockHash,
+					TxIndex:     task.index,
+					TxHash:      txs[task.index].Hash(),
+					BlockHash:   blockHash,
+					BlockNumber: block.NumberU64(),
 				}
 				res, err := api.traceTx(ctx, msg, txctx, blockCtx, task.statedb, config)
 				if err != nil {
@@ -510,9 +511,10 @@ func (api *PrivateTraceAPI) Transaction(ctx context.Context, hash common.Hash, c
 		return nil, err
 	}
 	txctx := &tracers.Context{
-		TxIndex:   int(index),
-		TxHash:    hash,
-		BlockHash: blockHash,
+		TxIndex:     int(index),
+		TxHash:      hash,
+		BlockHash:   blockHash,
+		BlockNumber: block.NumberU64(),
 	}
 	return api.traceTx(ctx, msg, txctx, vmctx, statedb, config)
 }

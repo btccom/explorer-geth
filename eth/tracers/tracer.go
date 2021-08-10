@@ -320,9 +320,10 @@ type Tracer struct {
 // Context contains some contextual infos for a transaction execution that is not
 // available from within the EVM object.
 type Context struct {
-	BlockHash common.Hash // Hash of the block the tx is contained within (zero if dangling tx or call)
-	TxIndex   int         // Index of the transaction within a block (zero if dangling tx or call)
-	TxHash    common.Hash // Hash of the transaction being traced (zero if dangling call)
+	BlockHash   common.Hash // Hash of the block the tx is contained within (zero if dangling tx or call)
+	BlockNumber uint64      // Number of the block the tx is contained within (zero if dangling call)
+	TxIndex     int         // Index of the transaction within a block (zero if dangling tx or call)
+	TxHash      common.Hash // Hash of the transaction being traced (zero if dangling call)
 }
 
 // New instantiates a new tracer instance. code specifies a Javascript snippet,
@@ -350,11 +351,12 @@ func New(code string, ctx *Context) (*Tracer, error) {
 		returnData:        new([]byte),
 	}
 	if ctx.BlockHash != (common.Hash{}) {
-		tracer.ctx["blockHash"] = ctx.BlockHash
+		tracer.ctx["blockHash"] = ctx.BlockHash.Hex()
+		tracer.ctx["blockNumber"] = ctx.BlockNumber
 
 		if ctx.TxHash != (common.Hash{}) {
-			tracer.ctx["txIndex"] = ctx.TxIndex
-			tracer.ctx["txHash"] = ctx.TxHash
+			tracer.ctx["transactionPosition"] = ctx.TxIndex
+			tracer.ctx["transactionHash"] = ctx.TxHash.Hex()
 		}
 	}
 	// Set up builtins for this environment
@@ -668,7 +670,7 @@ func (jst *Tracer) CaptureFault(env *vm.EVM, pc uint64, op vm.OpCode, gas, cost 
 	// clean up op error when CaptureFault is being called directly
 	jst.opErrorValue = nil
 	env.CallErrorTemp = nil // clean temp error storage, for debug tracing
-	
+
 	// Apart from the error, everything matches the previous invocation
 	jst.errorValue = new(string)
 	*jst.errorValue = err.Error()
