@@ -37,6 +37,7 @@ import (
 	"github.com/ethereum/go-ethereum/core/vm"
 	"github.com/ethereum/go-ethereum/eth/tracers"
 	"github.com/ethereum/go-ethereum/internal/ethapi"
+	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/params"
 	"github.com/ethereum/go-ethereum/rpc"
 )
@@ -222,6 +223,10 @@ func (api *PrivateTraceAPI) Block(ctx context.Context, number rpc.BlockNumber, c
 
 	for _, result := range traceResults {
 		var tmp []interface{}
+		if result.Result == nil {
+			log.Error(result.Error)
+			return nil, errors.New(fmt.Sprintf("traceBlockByNumber is nil, %s", result.Error))
+		}
 		if err := json.Unmarshal(result.Result.(json.RawMessage), &tmp); err != nil {
 			return nil, err
 		}
@@ -425,7 +430,7 @@ func (api *PrivateTraceAPI) traceTx(ctx context.Context, message core.Message, t
 				return nil, err
 			}
 		}
-		// Constuct the JavaScript tracer to execute with
+		// Construct the JavaScript tracer to execute with
 		if tracer, err = tracers.New(*config.Tracer, txctx); err != nil {
 			return nil, err
 		}
