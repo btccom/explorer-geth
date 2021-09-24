@@ -314,6 +314,10 @@ type Tracer struct {
 	interrupt uint32 // Atomic flag to signal execution interruption
 	reason    error  // Textual reason for the interruption
 
+	supportsStepPerfOptimisations bool  // Checks wether tracer supports `getCallstackLength` method in order to achieve optimal performance for call_tracer*
+	handleNextOpCode              bool  // Flag for step prechecker, instructing that next VM opcode has to be proccessed in `step` method
+	callTracerCallstackLength     *uint // Holds the current callstack length for call tracers, which can be compared with VM depth
+
 	activePrecompiles []common.Address // Updated on CaptureStart based on given rules
 }
 
@@ -335,20 +339,21 @@ func New(code string, ctx *Context) (*Tracer, error) {
 		code = tracer
 	}
 	tracer := &Tracer{
-		vm:                duktape.New(),
-		ctx:               make(map[string]interface{}),
-		opWrapper:         new(opWrapper),
-		stackWrapper:      new(stackWrapper),
-		memoryWrapper:     new(memoryWrapper),
-		contractWrapper:   new(contractWrapper),
-		dbWrapper:         new(dbWrapper),
-		pcValue:           new(uint),
-		gasValue:          new(uint),
-		costValue:         new(uint),
-		depthValue:        new(uint),
-		refundValue:       new(uint),
-		availableGasValue: new(uint),
-		returnData:        new([]byte),
+		vm:                        duktape.New(),
+		ctx:                       make(map[string]interface{}),
+		opWrapper:                 new(opWrapper),
+		stackWrapper:              new(stackWrapper),
+		memoryWrapper:             new(memoryWrapper),
+		contractWrapper:           new(contractWrapper),
+		dbWrapper:                 new(dbWrapper),
+		pcValue:                   new(uint),
+		gasValue:                  new(uint),
+		costValue:                 new(uint),
+		depthValue:                new(uint),
+		refundValue:               new(uint),
+		availableGasValue:         new(uint),
+		returnData:                new([]byte),
+		callTracerCallstackLength: new(uint),
 	}
 	if ctx.BlockHash != (common.Hash{}) {
 		// tracer.ctx["blockHash"] = ctx.BlockHash
@@ -462,6 +467,11 @@ func New(code string, ctx *Context) (*Tracer, error) {
 		return nil, err
 	}
 	tracer.tracerObject = 0 // yeah, nice, eval can't return the index itself
+
+	if tracer.vm.GetPropString(tracer.tracerObject, "getCallstackLength") {
+		tracer.supportsStepPerfOptimisations = true
+	}
+	tracer.vm.Pop()
 
 	if !tracer.vm.GetPropString(tracer.tracerObject, "step") {
 		return nil, fmt.Errorf("trace object must expose a function step()")
@@ -663,6 +673,43 @@ func (jst *Tracer) CaptureState(env *vm.EVM, pc uint64, op vm.OpCode, gas, cost 
 		*jst.errorValue = err.Error()
 	}
 
+	// Checks wether tracer supports `getCallstackLength` method in order to achieve optimal performance for call_tracer*
+	// in which case it checks if the call to `step` method has to be made, as the duktape prop call is an expensive operation
+	if jst.supportsStepPerfOptimisations {
+		run := false
+
+		if jst.callTracerCallstackLength == nil {
+			jst.vm.PushString("getCallstackLength")
+			code := jst.vm.PcallProp(jst.tracerObject, 0)
+			if code != 0 {
+				jst.vm.Pop()
+				err := jst.vm.SafeToString(-1)
+				jst.err = wrapError("step", errors.New(err))
+				return
+			}
+
+			jst.callTracerCallstackLength = new(uint)
+			*jst.callTracerCallstackLength = jst.vm.GetUint(-1)
+			jst.vm.Pop()
+		}
+
+		if *jst.callTracerCallstackLength-1 == uint(depth) {
+			run = true
+		} else if jst.handleNextOpCode {
+			jst.handleNextOpCode = false
+			run = true
+		} else if op&0xf0 == 0xf0 {
+			jst.handleNextOpCode = true
+			run = true
+		}
+
+		if !run {
+			return
+		} else {
+			jst.callTracerCallstackLength = nil
+		}
+	}
+
 	if _, err := jst.call(true, "step", "log", "db"); err != nil {
 		jst.err = wrapError("step", err)
 	}
@@ -671,6 +718,9 @@ func (jst *Tracer) CaptureState(env *vm.EVM, pc uint64, op vm.OpCode, gas, cost 
 // CaptureFault implements the Tracer interface to trace an execution fault
 func (jst *Tracer) CaptureFault(env *vm.EVM, pc uint64, op vm.OpCode, gas, cost uint64, scope *vm.ScopeContext, depth int, err error) {
 	if jst.err != nil {
+		// clean up op error when CaptureFault is being called directly
+		jst.opErrorValue = nil
+		env.CallErrorTemp = nil // clean temp error storage, for debug tracing
 		return
 	}
 	// clean up op error when CaptureFault is being called directly
