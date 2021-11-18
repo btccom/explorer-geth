@@ -343,7 +343,7 @@ func (api *PrivateTraceAPI) traceBlock(ctx context.Context, eth *Ethereum, block
 	if config != nil && config.Reexec != nil {
 		reexec = *config.Reexec
 	}
-	statedb, err := api.eth.stateAtBlock(parent, reexec, nil, true)
+	statedb, err := api.eth.stateAtBlock(parent, reexec, nil, true, false)
 	if err != nil {
 		return nil, err
 	}
@@ -418,7 +418,8 @@ func (api *PrivateTraceAPI) traceBlock(ctx context.Context, eth *Ethereum, block
 func (api *PrivateTraceAPI) traceTx(ctx context.Context, message core.Message, txctx *tracers.Context, vmctx vm.BlockContext, statedb *state.StateDB, config *tracers.TraceConfig) (interface{}, error) {
 	// Assemble the structured logger or the JavaScript tracer
 	var (
-		tracer    vm.Tracer
+		tracer    tracers.Tracer
+		logger    *vm.StructLogger
 		err       error
 		txContext = core.NewEVMTxContext(message)
 	)
@@ -440,16 +441,16 @@ func (api *PrivateTraceAPI) traceTx(ctx context.Context, message core.Message, t
 		go func() {
 			<-deadlineCtx.Done()
 			if deadlineCtx.Err() == context.DeadlineExceeded {
-				tracer.(*tracers.Tracer).Stop(errors.New("execution timeout"))
+				tracer.Stop(errors.New("execution timeout"))
 			}
 		}()
 		defer cancel()
 
 	case config == nil:
-		tracer = vm.NewStructLogger(nil)
+		logger = vm.NewStructLogger(nil)
 
 	default:
-		tracer = vm.NewStructLogger(config.LogConfig)
+		logger = vm.NewStructLogger(config.LogConfig)
 	}
 	// Run the transaction with tracing enabled.
 	vmenv := vm.NewEVM(vmctx, txContext, statedb, api.eth.blockchain.Config(), vm.Config{Debug: true, Tracer: tracer, NoBaseFee: true})
@@ -463,8 +464,8 @@ func (api *PrivateTraceAPI) traceTx(ctx context.Context, message core.Message, t
 	}
 
 	// Depending on the tracer type, format and return the output.
-	switch tracer := tracer.(type) {
-	case *vm.StructLogger:
+	//return tracer.GetResult()
+	if tracer == nil && config == nil {
 		// If the result contains a revert reason, return it.
 		returnVal := fmt.Sprintf("%x", result.Return())
 		if len(result.Revert()) > 0 {
@@ -474,15 +475,13 @@ func (api *PrivateTraceAPI) traceTx(ctx context.Context, message core.Message, t
 			Gas:         result.UsedGas,
 			Failed:      result.Failed(),
 			ReturnValue: returnVal,
-			StructLogs:  ethapi.FormatLogs(tracer.StructLogs()),
+			StructLogs:  ethapi.FormatLogs(logger.StructLogs()),
 		}, nil
-
-	case *tracers.Tracer:
-		return tracer.GetResult()
-
-	default:
-		panic(fmt.Sprintf("bad tracer type %T", tracer))
 	}
+	if tracer != nil {
+		return tracer.GetResult()
+	}
+	panic(fmt.Sprintf("bad tracer type %T", tracer))
 }
 
 // Transaction returns the structured logs created during the execution of EVM
