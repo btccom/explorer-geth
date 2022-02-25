@@ -89,7 +89,11 @@ func newTester() *downloadTester {
 	tester.stateDb = rawdb.NewMemoryDatabase()
 	tester.stateDb.Put(testGenesis.Root().Bytes(), []byte{0x00})
 
+<<<<<<< HEAD
 	tester.downloader = New(0, tester.stateDb, trie.NewSyncBloom(1, tester.stateDb), new(event.TypeMux), tester, nil, tester.dropPeer)
+=======
+	tester.downloader = New(0, tester.stateDb, new(event.TypeMux), tester, nil, tester.dropPeer)
+>>>>>>> 20356e57b119b4e70ce47665a71964434e15200d
 	return tester
 }
 
@@ -1207,8 +1211,13 @@ func checkProgress(t *testing.T, d *Downloader, stage string, want ethereum.Sync
 	t.Helper()
 
 	p := d.Progress()
+<<<<<<< HEAD
 	p.KnownStates, p.PulledStates = 0, 0
 	want.KnownStates, want.PulledStates = 0, 0
+=======
+	//p.KnownStates, p.PulledStates = 0, 0
+	//want.KnownStates, want.PulledStates = 0, 0
+>>>>>>> 20356e57b119b4e70ce47665a71964434e15200d
 	if p != want {
 		t.Fatalf("%s progress mismatch:\nhave %+v\nwant %+v", stage, p, want)
 	}

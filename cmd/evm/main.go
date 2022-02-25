@@ -139,8 +139,10 @@ var stateTransitionCommand = cli.Command{
 	Flags: []cli.Flag{
 		t8ntool.TraceFlag,
 		t8ntool.TraceDisableMemoryFlag,
+		t8ntool.TraceEnableMemoryFlag,
 		t8ntool.TraceDisableStackFlag,
 		t8ntool.TraceDisableReturnDataFlag,
+		t8ntool.TraceEnableReturnDataFlag,
 		t8ntool.OutputBasedir,
 		t8ntool.OutputAllocFlag,
 		t8ntool.OutputResultFlag,
@@ -166,6 +168,28 @@ var transactionCommand = cli.Command{
 		t8ntool.VerbosityFlag,
 	},
 }
+<<<<<<< HEAD
+=======
+
+var blockBuilderCommand = cli.Command{
+	Name:    "block-builder",
+	Aliases: []string{"b11r"},
+	Usage:   "builds a block",
+	Action:  t8ntool.BuildBlock,
+	Flags: []cli.Flag{
+		t8ntool.OutputBasedir,
+		t8ntool.OutputBlockFlag,
+		t8ntool.InputHeaderFlag,
+		t8ntool.InputOmmersFlag,
+		t8ntool.InputTxsRlpFlag,
+		t8ntool.SealCliqueFlag,
+		t8ntool.SealEthashFlag,
+		t8ntool.SealEthashDirFlag,
+		t8ntool.SealEthashModeFlag,
+		t8ntool.VerbosityFlag,
+	},
+}
+>>>>>>> 20356e57b119b4e70ce47665a71964434e15200d
 
 func init() {
 	app.Flags = []cli.Flag{
@@ -200,6 +224,10 @@ func init() {
 		stateTestCommand,
 		stateTransitionCommand,
 		transactionCommand,
+<<<<<<< HEAD
+=======
+		blockBuilderCommand,
+>>>>>>> 20356e57b119b4e70ce47665a71964434e15200d
 	}
 	cli.CommandHelpTemplate = flags.OriginCommandHelpTemplate
 }

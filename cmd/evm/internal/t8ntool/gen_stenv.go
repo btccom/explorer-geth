@@ -18,6 +18,10 @@ func (s stEnv) MarshalJSON() ([]byte, error) {
 	type stEnv struct {
 		Coinbase         common.UnprefixedAddress            `json:"currentCoinbase"   gencodec:"required"`
 		Difficulty       *math.HexOrDecimal256               `json:"currentDifficulty"`
+<<<<<<< HEAD
+=======
+		Random           *math.HexOrDecimal256               `json:"currentRandom"`
+>>>>>>> 20356e57b119b4e70ce47665a71964434e15200d
 		ParentDifficulty *math.HexOrDecimal256               `json:"parentDifficulty"`
 		GasLimit         math.HexOrDecimal64                 `json:"currentGasLimit"   gencodec:"required"`
 		Number           math.HexOrDecimal64                 `json:"currentNumber"     gencodec:"required"`
@@ -31,6 +35,10 @@ func (s stEnv) MarshalJSON() ([]byte, error) {
 	var enc stEnv
 	enc.Coinbase = common.UnprefixedAddress(s.Coinbase)
 	enc.Difficulty = (*math.HexOrDecimal256)(s.Difficulty)
+<<<<<<< HEAD
+=======
+	enc.Random = (*math.HexOrDecimal256)(s.Random)
+>>>>>>> 20356e57b119b4e70ce47665a71964434e15200d
 	enc.ParentDifficulty = (*math.HexOrDecimal256)(s.ParentDifficulty)
 	enc.GasLimit = math.HexOrDecimal64(s.GasLimit)
 	enc.Number = math.HexOrDecimal64(s.Number)
@@ -48,6 +56,10 @@ func (s *stEnv) UnmarshalJSON(input []byte) error {
 	type stEnv struct {
 		Coinbase         *common.UnprefixedAddress           `json:"currentCoinbase"   gencodec:"required"`
 		Difficulty       *math.HexOrDecimal256               `json:"currentDifficulty"`
+<<<<<<< HEAD
+=======
+		Random           *math.HexOrDecimal256               `json:"currentRandom"`
+>>>>>>> 20356e57b119b4e70ce47665a71964434e15200d
 		ParentDifficulty *math.HexOrDecimal256               `json:"parentDifficulty"`
 		GasLimit         *math.HexOrDecimal64                `json:"currentGasLimit"   gencodec:"required"`
 		Number           *math.HexOrDecimal64                `json:"currentNumber"     gencodec:"required"`
@@ -69,6 +81,12 @@ func (s *stEnv) UnmarshalJSON(input []byte) error {
 	if dec.Difficulty != nil {
 		s.Difficulty = (*big.Int)(dec.Difficulty)
 	}
+<<<<<<< HEAD
+=======
+	if dec.Random != nil {
+		s.Random = (*big.Int)(dec.Random)
+	}
+>>>>>>> 20356e57b119b4e70ce47665a71964434e15200d
 	if dec.ParentDifficulty != nil {
 		s.ParentDifficulty = (*big.Int)(dec.ParentDifficulty)
 	}

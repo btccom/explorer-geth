@@ -46,6 +46,30 @@ func TestEthSuite(t *testing.T) {
 		t.Fatalf("could not create new test suite: %v", err)
 	}
 	for _, test := range suite.Eth66Tests() {
+<<<<<<< HEAD
+=======
+		t.Run(test.Name, func(t *testing.T) {
+			result := utesting.RunTAP([]utesting.Test{{Name: test.Name, Fn: test.Fn}}, os.Stdout)
+			if result[0].Failed {
+				t.Fatal()
+			}
+		})
+	}
+}
+
+func TestSnapSuite(t *testing.T) {
+	geth, err := runGeth()
+	if err != nil {
+		t.Fatalf("could not run geth: %v", err)
+	}
+	defer geth.Close()
+
+	suite, err := NewSuite(geth.Server().Self(), fullchainFile, genesisFile)
+	if err != nil {
+		t.Fatalf("could not create new test suite: %v", err)
+	}
+	for _, test := range suite.SnapTests() {
+>>>>>>> 20356e57b119b4e70ce47665a71964434e15200d
 		t.Run(test.Name, func(t *testing.T) {
 			result := utesting.RunTAP([]utesting.Test{{Name: test.Name, Fn: test.Fn}}, os.Stdout)
 			if result[0].Failed {

@@ -37,6 +37,7 @@ import (
 	"github.com/ethereum/go-ethereum/core/vm"
 	"github.com/ethereum/go-ethereum/eth/tracers"
 	"github.com/ethereum/go-ethereum/internal/ethapi"
+	"github.com/ethereum/go-ethereum/eth/tracers/logger"
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/params"
 	"github.com/ethereum/go-ethereum/rpc"
@@ -343,7 +344,7 @@ func (api *PrivateTraceAPI) traceBlock(ctx context.Context, eth *Ethereum, block
 	if config != nil && config.Reexec != nil {
 		reexec = *config.Reexec
 	}
-	statedb, err := api.eth.stateAtBlock(parent, reexec, nil, true, false)
+	statedb, err := api.eth.StateAtBlock(parent, reexec, nil, true, false)
 	if err != nil {
 		return nil, err
 	}
@@ -419,7 +420,7 @@ func (api *PrivateTraceAPI) traceTx(ctx context.Context, message core.Message, t
 	// Assemble the structured logger or the JavaScript tracer
 	var (
 		tracer    tracers.Tracer
-		logger    *vm.StructLogger
+		l    *logger.StructLogger
 		err       error
 		txContext = core.NewEVMTxContext(message)
 	)
@@ -447,10 +448,10 @@ func (api *PrivateTraceAPI) traceTx(ctx context.Context, message core.Message, t
 		defer cancel()
 
 	case config == nil:
-		logger = vm.NewStructLogger(nil)
+		l = logger.NewStructLogger(nil)
 
 	default:
-		logger = vm.NewStructLogger(config.LogConfig)
+		l = logger.NewStructLogger(config.Config)
 	}
 	// Run the transaction with tracing enabled.
 	vmenv := vm.NewEVM(vmctx, txContext, statedb, api.eth.blockchain.Config(), vm.Config{Debug: true, Tracer: tracer, NoBaseFee: true})
@@ -475,7 +476,7 @@ func (api *PrivateTraceAPI) traceTx(ctx context.Context, message core.Message, t
 			Gas:         result.UsedGas,
 			Failed:      result.Failed(),
 			ReturnValue: returnVal,
-			StructLogs:  ethapi.FormatLogs(logger.StructLogs()),
+			StructLogs:  ethapi.FormatLogs(l.StructLogs()),
 		}, nil
 	}
 	if tracer != nil {

@@ -49,12 +49,20 @@ type Prestate struct {
 type ExecutionResult struct {
 	StateRoot   common.Hash           `json:"stateRoot"`
 	TxRoot      common.Hash           `json:"txRoot"`
+<<<<<<< HEAD
 	ReceiptRoot common.Hash           `json:"receiptRoot"`
+=======
+	ReceiptRoot common.Hash           `json:"receiptsRoot"`
+>>>>>>> 20356e57b119b4e70ce47665a71964434e15200d
 	LogsHash    common.Hash           `json:"logsHash"`
 	Bloom       types.Bloom           `json:"logsBloom"        gencodec:"required"`
 	Receipts    types.Receipts        `json:"receipts"`
 	Rejected    []*rejectedTx         `json:"rejected,omitempty"`
 	Difficulty  *math.HexOrDecimal256 `json:"currentDifficulty" gencodec:"required"`
+<<<<<<< HEAD
+=======
+	GasUsed     math.HexOrDecimal64   `json:"gasUsed"`
+>>>>>>> 20356e57b119b4e70ce47665a71964434e15200d
 }
 
 type ommer struct {
@@ -66,6 +74,10 @@ type ommer struct {
 type stEnv struct {
 	Coinbase         common.Address                      `json:"currentCoinbase"   gencodec:"required"`
 	Difficulty       *big.Int                            `json:"currentDifficulty"`
+<<<<<<< HEAD
+=======
+	Random           *big.Int                            `json:"currentRandom"`
+>>>>>>> 20356e57b119b4e70ce47665a71964434e15200d
 	ParentDifficulty *big.Int                            `json:"parentDifficulty"`
 	GasLimit         uint64                              `json:"currentGasLimit"   gencodec:"required"`
 	Number           uint64                              `json:"currentNumber"     gencodec:"required"`
@@ -80,6 +92,10 @@ type stEnv struct {
 type stEnvMarshaling struct {
 	Coinbase         common.UnprefixedAddress
 	Difficulty       *math.HexOrDecimal256
+<<<<<<< HEAD
+=======
+	Random           *math.HexOrDecimal256
+>>>>>>> 20356e57b119b4e70ce47665a71964434e15200d
 	ParentDifficulty *math.HexOrDecimal256
 	GasLimit         math.HexOrDecimal64
 	Number           math.HexOrDecimal64
@@ -137,6 +153,11 @@ func (pre *Prestate) Apply(vmConfig vm.Config, chainConfig *params.ChainConfig,
 	// If currentBaseFee is defined, add it to the vmContext.
 	if pre.Env.BaseFee != nil {
 		vmContext.BaseFee = new(big.Int).Set(pre.Env.BaseFee)
+	}
+	// If random is defined, add it to the vmContext.
+	if pre.Env.Random != nil {
+		rnd := common.BigToHash(pre.Env.Random)
+		vmContext.Random = &rnd
 	}
 	// If DAO is supported/enabled, we need to handle it here. In geth 'proper', it's
 	// done in StateProcessor.Process(block, ...), right before transactions are applied.
@@ -255,6 +276,10 @@ func (pre *Prestate) Apply(vmConfig vm.Config, chainConfig *params.ChainConfig,
 		Receipts:    receipts,
 		Rejected:    rejectedTxs,
 		Difficulty:  (*math.HexOrDecimal256)(vmContext.Difficulty),
+<<<<<<< HEAD
+=======
+		GasUsed:     (math.HexOrDecimal64)(gasUsed),
+>>>>>>> 20356e57b119b4e70ce47665a71964434e15200d
 	}
 	return statedb, execRs, nil
 }
