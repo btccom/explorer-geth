@@ -34,10 +34,7 @@ import (
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/core/vm"
 	"github.com/ethereum/go-ethereum/eth/tracers"
-<<<<<<< HEAD
-=======
 	"github.com/ethereum/go-ethereum/eth/tracers/logger"
->>>>>>> 20356e57b119b4e70ce47665a71964434e15200d
 	"github.com/ethereum/go-ethereum/params"
 
 	// force-load js tracers to trigger registration

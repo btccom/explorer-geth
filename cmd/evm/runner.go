@@ -108,11 +108,7 @@ func runCmd(ctx *cli.Context) error {
 	glogger := log.NewGlogHandler(log.StreamHandler(os.Stderr, log.TerminalFormat(false)))
 	glogger.Verbosity(log.Lvl(ctx.GlobalInt(VerbosityFlag.Name)))
 	log.Root().SetHandler(glogger)
-<<<<<<< HEAD
-	logconfig := &vm.LogConfig{
-=======
 	logconfig := &logger.Config{
->>>>>>> 20356e57b119b4e70ce47665a71964434e15200d
 		EnableMemory:     !ctx.GlobalBool(DisableMemoryFlag.Name),
 		DisableStack:     ctx.GlobalBool(DisableStackFlag.Name),
 		DisableStorage:   ctx.GlobalBool(DisableStorageFlag.Name),
@@ -122,11 +118,7 @@ func runCmd(ctx *cli.Context) error {
 
 	var (
 		tracer        vm.EVMLogger
-<<<<<<< HEAD
-		debugLogger   *vm.StructLogger
-=======
 		debugLogger   *logger.StructLogger
->>>>>>> 20356e57b119b4e70ce47665a71964434e15200d
 		statedb       *state.StateDB
 		chainConfig   *params.ChainConfig
 		sender        = common.BytesToAddress([]byte("sender"))

@@ -59,11 +59,7 @@ func stateTestCmd(ctx *cli.Context) error {
 	log.Root().SetHandler(glogger)
 
 	// Configure the EVM logger
-<<<<<<< HEAD
-	config := &vm.LogConfig{
-=======
 	config := &logger.Config{
->>>>>>> 20356e57b119b4e70ce47665a71964434e15200d
 		EnableMemory:     !ctx.GlobalBool(DisableMemoryFlag.Name),
 		DisableStack:     ctx.GlobalBool(DisableStackFlag.Name),
 		DisableStorage:   ctx.GlobalBool(DisableStorageFlag.Name),
@@ -71,11 +67,7 @@ func stateTestCmd(ctx *cli.Context) error {
 	}
 	var (
 		tracer   vm.EVMLogger
-<<<<<<< HEAD
-		debugger *vm.StructLogger
-=======
 		debugger *logger.StructLogger
->>>>>>> 20356e57b119b4e70ce47665a71964434e15200d
 	)
 	switch {
 	case ctx.GlobalBool(MachineFlag.Name):

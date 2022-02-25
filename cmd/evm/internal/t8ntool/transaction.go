@@ -48,11 +48,7 @@ func (r *result) MarshalJSON() ([]byte, error) {
 		Error        string          `json:"error,omitempty"`
 		Address      *common.Address `json:"address,omitempty"`
 		Hash         *common.Hash    `json:"hash,omitempty"`
-<<<<<<< HEAD
-		IntrinsicGas uint64          `json:"intrinsicGas,omitempty"`
-=======
 		IntrinsicGas hexutil.Uint64  `json:"intrinsicGas,omitempty"`
->>>>>>> 20356e57b119b4e70ce47665a71964434e15200d
 	}
 	var out xx
 	if r.Error != nil {
@@ -64,11 +60,7 @@ func (r *result) MarshalJSON() ([]byte, error) {
 	if r.Hash != (common.Hash{}) {
 		out.Hash = &r.Hash
 	}
-<<<<<<< HEAD
-	out.IntrinsicGas = r.IntrinsicGas
-=======
 	out.IntrinsicGas = hexutil.Uint64(r.IntrinsicGas)
->>>>>>> 20356e57b119b4e70ce47665a71964434e15200d
 	return json.Marshal(out)
 }
 
@@ -90,11 +82,7 @@ func Transaction(ctx *cli.Context) error {
 	)
 	// Construct the chainconfig
 	if cConf, _, err := tests.GetChainConfig(ctx.String(ForknameFlag.Name)); err != nil {
-<<<<<<< HEAD
-		return NewError(ErrorVMConfig, fmt.Errorf("failed constructing chain configuration: %v", err))
-=======
 		return NewError(ErrorConfig, fmt.Errorf("failed constructing chain configuration: %v", err))
->>>>>>> 20356e57b119b4e70ce47665a71964434e15200d
 	} else {
 		chainConfig = cConf
 	}
@@ -166,11 +154,8 @@ func Transaction(ctx *cli.Context) error {
 		}
 		// Validate <256bit fields
 		switch {
-<<<<<<< HEAD
-=======
 		case tx.Nonce()+1 < tx.Nonce():
 			r.Error = errors.New("nonce exceeds 2^64-1")
->>>>>>> 20356e57b119b4e70ce47665a71964434e15200d
 		case tx.Value().BitLen() > 256:
 			r.Error = errors.New("value exceeds 256 bits")
 		case tx.GasPrice().BitLen() > 256:

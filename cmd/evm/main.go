@@ -168,8 +168,6 @@ var transactionCommand = cli.Command{
 		t8ntool.VerbosityFlag,
 	},
 }
-<<<<<<< HEAD
-=======
 
 var blockBuilderCommand = cli.Command{
 	Name:    "block-builder",
@@ -189,7 +187,6 @@ var blockBuilderCommand = cli.Command{
 		t8ntool.VerbosityFlag,
 	},
 }
->>>>>>> 20356e57b119b4e70ce47665a71964434e15200d
 
 func init() {
 	app.Flags = []cli.Flag{
@@ -224,10 +221,7 @@ func init() {
 		stateTestCommand,
 		stateTransitionCommand,
 		transactionCommand,
-<<<<<<< HEAD
-=======
 		blockBuilderCommand,
->>>>>>> 20356e57b119b4e70ce47665a71964434e15200d
 	}
 	cli.CommandHelpTemplate = flags.OriginCommandHelpTemplate
 }

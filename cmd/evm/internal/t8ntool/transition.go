@@ -90,14 +90,8 @@ func Transition(ctx *cli.Context) error {
 	log.Root().SetHandler(glogger)
 
 	var (
-<<<<<<< HEAD
-		err     error
-		tracer  vm.EVMLogger
-		baseDir = ""
-=======
 		err    error
 		tracer vm.EVMLogger
->>>>>>> 20356e57b119b4e70ce47665a71964434e15200d
 	)
 	var getTracer func(txIndex int, txHash common.Hash) (vm.EVMLogger, error)
 
@@ -119,17 +113,10 @@ func Transition(ctx *cli.Context) error {
 			log.Warn(fmt.Sprintf("--%s has been deprecated in favour of --%s", TraceDisableReturnDataFlag.Name, TraceEnableReturnDataFlag.Name))
 		}
 		// Configure the EVM logger
-<<<<<<< HEAD
-		logConfig := &vm.LogConfig{
-			DisableStack:     ctx.Bool(TraceDisableStackFlag.Name),
-			EnableMemory:     !ctx.Bool(TraceDisableMemoryFlag.Name),
-			EnableReturnData: !ctx.Bool(TraceDisableReturnDataFlag.Name),
-=======
 		logConfig := &logger.Config{
 			DisableStack:     ctx.Bool(TraceDisableStackFlag.Name),
 			EnableMemory:     !ctx.Bool(TraceDisableMemoryFlag.Name) || ctx.Bool(TraceEnableMemoryFlag.Name),
 			EnableReturnData: !ctx.Bool(TraceDisableReturnDataFlag.Name) || ctx.Bool(TraceEnableReturnDataFlag.Name),
->>>>>>> 20356e57b119b4e70ce47665a71964434e15200d
 			Debug:            true,
 		}
 		var prevFile *os.File
@@ -265,30 +252,19 @@ func Transition(ctx *cli.Context) error {
 			return NewError(ErrorConfig, errors.New("EIP-1559 config but missing 'currentBaseFee' in env section"))
 		}
 	}
-<<<<<<< HEAD
-=======
 	// Sanity check, to not `panic` in state_transition
 	if prestate.Env.Random != nil && !chainConfig.IsLondon(big.NewInt(int64(prestate.Env.Number))) {
 		return NewError(ErrorConfig, errors.New("can only apply RANDOM on top of London chainrules"))
 	}
->>>>>>> 20356e57b119b4e70ce47665a71964434e15200d
 	if env := prestate.Env; env.Difficulty == nil {
 		// If difficulty was not provided by caller, we need to calculate it.
 		switch {
 		case env.ParentDifficulty == nil:
-<<<<<<< HEAD
-			return NewError(ErrorVMConfig, errors.New("currentDifficulty was not provided, and cannot be calculated due to missing parentDifficulty"))
-		case env.Number == 0:
-			return NewError(ErrorVMConfig, errors.New("currentDifficulty needs to be provided for block number 0"))
-		case env.Timestamp <= env.ParentTimestamp:
-			return NewError(ErrorVMConfig, fmt.Errorf("currentDifficulty cannot be calculated -- currentTime (%d) needs to be after parent time (%d)",
-=======
 			return NewError(ErrorConfig, errors.New("currentDifficulty was not provided, and cannot be calculated due to missing parentDifficulty"))
 		case env.Number == 0:
 			return NewError(ErrorConfig, errors.New("currentDifficulty needs to be provided for block number 0"))
 		case env.Timestamp <= env.ParentTimestamp:
 			return NewError(ErrorConfig, fmt.Errorf("currentDifficulty cannot be calculated -- currentTime (%d) needs to be after parent time (%d)",
->>>>>>> 20356e57b119b4e70ce47665a71964434e15200d
 				env.Timestamp, env.ParentTimestamp))
 		}
 		prestate.Env.Difficulty = calcDifficulty(chainConfig, env.Number, env.Timestamp,

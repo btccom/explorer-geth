@@ -21,16 +21,6 @@ import (
 	"errors"
 	"fmt"
 	"mime"
-<<<<<<< HEAD
-	"reflect"
-	"regexp"
-	"sort"
-	"strconv"
-	"strings"
-	"unicode"
-	"unicode/utf8"
-=======
->>>>>>> 20356e57b119b4e70ce47665a71964434e15200d
 
 	"github.com/ethereum/go-ethereum/accounts"
 	"github.com/ethereum/go-ethereum/common"
@@ -42,91 +32,6 @@ import (
 	"github.com/ethereum/go-ethereum/signer/core/apitypes"
 )
 
-<<<<<<< HEAD
-type SigFormat struct {
-	Mime        string
-	ByteVersion byte
-}
-
-var (
-	IntendedValidator = SigFormat{
-		accounts.MimetypeDataWithValidator,
-		0x00,
-	}
-	DataTyped = SigFormat{
-		accounts.MimetypeTypedData,
-		0x01,
-	}
-	ApplicationClique = SigFormat{
-		accounts.MimetypeClique,
-		0x02,
-	}
-	TextPlain = SigFormat{
-		accounts.MimetypeTextPlain,
-		0x45,
-	}
-)
-
-type ValidatorData struct {
-	Address common.Address
-	Message hexutil.Bytes
-}
-
-type TypedData struct {
-	Types       Types            `json:"types"`
-	PrimaryType string           `json:"primaryType"`
-	Domain      TypedDataDomain  `json:"domain"`
-	Message     TypedDataMessage `json:"message"`
-}
-
-type Type struct {
-	Name string `json:"name"`
-	Type string `json:"type"`
-}
-
-func (t *Type) isArray() bool {
-	return strings.HasSuffix(t.Type, "[]")
-}
-
-// typeName returns the canonical name of the type. If the type is 'Person[]', then
-// this method returns 'Person'
-func (t *Type) typeName() string {
-	if strings.HasSuffix(t.Type, "[]") {
-		return strings.TrimSuffix(t.Type, "[]")
-	}
-	return t.Type
-}
-
-func (t *Type) isReferenceType() bool {
-	if len(t.Type) == 0 {
-		return false
-	}
-	// Reference types must have a leading uppercase character
-	r, _ := utf8.DecodeRuneInString(t.Type)
-	return unicode.IsUpper(r)
-}
-
-type Types map[string][]Type
-
-type TypePriority struct {
-	Type  string
-	Value uint
-}
-
-type TypedDataMessage = map[string]interface{}
-
-type TypedDataDomain struct {
-	Name              string                `json:"name"`
-	Version           string                `json:"version"`
-	ChainId           *math.HexOrDecimal256 `json:"chainId"`
-	VerifyingContract string                `json:"verifyingContract"`
-	Salt              string                `json:"salt"`
-}
-
-var typedDataReferenceTypeRegexp = regexp.MustCompile(`^[A-Z](\w*)(\[\])?$`)
-
-=======
->>>>>>> 20356e57b119b4e70ce47665a71964434e15200d
 // sign receives a request and produces a signature
 //
 // Note, the produced signature conforms to the secp256k1 curve R, S and V values,
