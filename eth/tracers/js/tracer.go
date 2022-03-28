@@ -459,10 +459,15 @@ func newJsTracer(code string, ctx *tracers2.Context) (tracers2.Tracer, error) {
 	}
 	if ctx.BlockHash != (common.Hash{}) {
 		tracer.ctx["blockHash"] = ctx.BlockHash.Hex()
+		if ctx.BlockNumber != 0 {
+			tracer.ctx["blockNumber"] = ctx.BlockNumber
+		}
 
 		if ctx.TxHash != (common.Hash{}) {
 			tracer.ctx["txIndex"] = ctx.TxIndex
 			tracer.ctx["txHash"] = ctx.TxHash
+			tracer.ctx["transactionPosition"] = ctx.TxIndex
+			tracer.ctx["transactionHash"] = ctx.TxHash.Hex()
 		}
 	}
 	// Set up builtins for this environment
