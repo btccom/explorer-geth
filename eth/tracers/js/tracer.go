@@ -458,7 +458,7 @@ func newJsTracer(code string, ctx *tracers2.Context) (tracers2.Tracer, error) {
 		callTracerCallstackLength: new(uint),
 	}
 	if ctx.BlockHash != (common.Hash{}) {
-		tracer.ctx["blockHash"] = ctx.BlockHash
+		tracer.ctx["blockHash"] = ctx.BlockHash.Hex()
 
 		if ctx.TxHash != (common.Hash{}) {
 			tracer.ctx["txIndex"] = ctx.TxIndex
