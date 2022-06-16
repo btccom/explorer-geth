@@ -89,7 +89,7 @@ func newTester() *downloadTester {
 	tester.stateDb = rawdb.NewMemoryDatabase()
 	tester.stateDb.Put(testGenesis.Root().Bytes(), []byte{0x00})
 
-	tester.downloader = New(0, tester.stateDb, trie.NewSyncBloom(1, tester.stateDb), new(event.TypeMux), tester, nil, tester.dropPeer)
+	tester.downloader = New(0, tester.stateDb, new(event.TypeMux), tester, nil, tester.dropPeer)
 	return tester
 }
 
@@ -229,7 +229,7 @@ func (dl *downloadTester) CurrentFastBlock() *types.Block {
 func (dl *downloadTester) FastSyncCommitHead(hash common.Hash) error {
 	// For now only check that the state trie is correct
 	if block := dl.GetBlockByHash(hash); block != nil {
-		_, err := trie.NewSecure(block.Root(), trie.NewDatabase(dl.stateDb))
+		_, err := trie.NewSecure(common.Hash{}, block.Root(), trie.NewDatabase(dl.stateDb))
 		return err
 	}
 	return fmt.Errorf("non existent block: %x", hash[:4])
@@ -1207,8 +1207,8 @@ func checkProgress(t *testing.T, d *Downloader, stage string, want ethereum.Sync
 	t.Helper()
 
 	p := d.Progress()
-	p.KnownStates, p.PulledStates = 0, 0
-	want.KnownStates, want.PulledStates = 0, 0
+	//p.KnownStates, p.PulledStates = 0, 0
+	//want.KnownStates, want.PulledStates = 0, 0
 	if p != want {
 		t.Fatalf("%s progress mismatch:\nhave %+v\nwant %+v", stage, p, want)
 	}
@@ -1577,8 +1577,8 @@ func TestRemoteHeaderRequestSpan(t *testing.T) {
 			}
 		}
 		if failed {
-			res := strings.Replace(fmt.Sprint(data), " ", ",", -1)
-			exp := strings.Replace(fmt.Sprint(tt.expected), " ", ",", -1)
+			res := strings.ReplaceAll(fmt.Sprint(data), " ", ",")
+			exp := strings.ReplaceAll(fmt.Sprint(tt.expected), " ", ",")
 			t.Logf("got: %v\n", res)
 			t.Logf("exp: %v\n", exp)
 			t.Errorf("test %d: wrong values", i)

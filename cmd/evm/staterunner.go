@@ -20,11 +20,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"os"
 
 	"github.com/ethereum/go-ethereum/core/state"
 	"github.com/ethereum/go-ethereum/core/vm"
+	"github.com/ethereum/go-ethereum/eth/tracers/logger"
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/tests"
 
@@ -58,7 +58,7 @@ func stateTestCmd(ctx *cli.Context) error {
 	log.Root().SetHandler(glogger)
 
 	// Configure the EVM logger
-	config := &vm.LogConfig{
+	config := &logger.Config{
 		EnableMemory:     !ctx.GlobalBool(DisableMemoryFlag.Name),
 		DisableStack:     ctx.GlobalBool(DisableStackFlag.Name),
 		DisableStorage:   ctx.GlobalBool(DisableStorageFlag.Name),
@@ -66,21 +66,21 @@ func stateTestCmd(ctx *cli.Context) error {
 	}
 	var (
 		tracer   vm.EVMLogger
-		debugger *vm.StructLogger
+		debugger *logger.StructLogger
 	)
 	switch {
 	case ctx.GlobalBool(MachineFlag.Name):
-		tracer = vm.NewJSONLogger(config, os.Stderr)
+		tracer = logger.NewJSONLogger(config, os.Stderr)
 
 	case ctx.GlobalBool(DebugFlag.Name):
-		debugger = vm.NewStructLogger(config)
+		debugger = logger.NewStructLogger(config)
 		tracer = debugger
 
 	default:
-		debugger = vm.NewStructLogger(config)
+		debugger = logger.NewStructLogger(config)
 	}
 	// Load the test content from the input file
-	src, err := ioutil.ReadFile(ctx.Args().First())
+	src, err := os.ReadFile(ctx.Args().First())
 	if err != nil {
 		return err
 	}
@@ -118,7 +118,7 @@ func stateTestCmd(ctx *cli.Context) error {
 			if ctx.GlobalBool(DebugFlag.Name) {
 				if debugger != nil {
 					fmt.Fprintln(os.Stderr, "#### TRACE ####")
-					vm.WriteTrace(os.Stderr, debugger.StructLogs())
+					logger.WriteTrace(os.Stderr, debugger.StructLogs())
 				}
 			}
 		}

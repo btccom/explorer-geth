@@ -25,7 +25,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"math/big"
 	"os"
 	"os/signal"
@@ -374,7 +373,7 @@ func initializeSecrets(c *cli.Context) error {
 		return fmt.Errorf("master key %v already exists, will not overwrite", location)
 	}
 	// Write the file and print the usual warning message
-	if err = ioutil.WriteFile(location, cipherSeed, 0400); err != nil {
+	if err = os.WriteFile(location, cipherSeed, 0400); err != nil {
 		return err
 	}
 	fmt.Printf("A master seed has been generated into %s\n", location)
@@ -593,7 +592,7 @@ func signer(c *cli.Context) error {
 
 		// Do we have a rule-file?
 		if ruleFile := c.GlobalString(ruleFlag.Name); ruleFile != "" {
-			ruleJS, err := ioutil.ReadFile(ruleFile)
+			ruleJS, err := os.ReadFile(ruleFile)
 			if err != nil {
 				log.Warn("Could not load rules, disabling", "file", ruleFile, "err", err)
 			} else {
@@ -661,7 +660,7 @@ func signer(c *cli.Context) error {
 		if err != nil {
 			utils.Fatalf("Could not register API: %w", err)
 		}
-		handler := node.NewHTTPHandlerStack(srv, cors, vhosts)
+		handler := node.NewHTTPHandlerStack(srv, cors, vhosts, nil)
 
 		// set port
 		port := c.Int(rpcPortFlag.Name)
@@ -751,7 +750,7 @@ func readMasterKey(ctx *cli.Context, ui core.UIClientAPI) ([]byte, error) {
 	if err := checkFile(file); err != nil {
 		return nil, err
 	}
-	cipherKey, err := ioutil.ReadFile(file)
+	cipherKey, err := os.ReadFile(file)
 	if err != nil {
 		return nil, err
 	}
@@ -898,7 +897,7 @@ func testExternalUI(api *core.SignerAPI) {
 		addr, _ := common.NewMixedcaseAddressFromString("0x0011223344556677889900112233445566778899")
 		data := `{"types":{"EIP712Domain":[{"name":"name","type":"string"},{"name":"version","type":"string"},{"name":"chainId","type":"uint256"},{"name":"verifyingContract","type":"address"}],"Person":[{"name":"name","type":"string"},{"name":"test","type":"uint8"},{"name":"wallet","type":"address"}],"Mail":[{"name":"from","type":"Person"},{"name":"to","type":"Person"},{"name":"contents","type":"string"}]},"primaryType":"Mail","domain":{"name":"Ether Mail","version":"1","chainId":"1","verifyingContract":"0xCCCcccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC"},"message":{"from":{"name":"Cow","test":"3","wallet":"0xcD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826"},"to":{"name":"Bob","wallet":"0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB","test":"2"},"contents":"Hello, Bob!"}}`
 		//_, err := api.SignData(ctx, accounts.MimetypeTypedData, *addr, hexutil.Encode([]byte(data)))
-		var typedData core.TypedData
+		var typedData apitypes.TypedData
 		json.Unmarshal([]byte(data), &typedData)
 		_, err := api.SignTypedData(ctx, *addr, typedData)
 		expectApprove("sign 712 typed data", err)
@@ -1025,7 +1024,7 @@ func GenDoc(ctx *cli.Context) {
 			"of the work in canonicalizing and making sense of the data, and it's up to the UI to present" +
 			"the user with the contents of the `message`"
 		sighash, msg := accounts.TextAndHash([]byte("hello world"))
-		messages := []*core.NameValueType{{Name: "message", Value: msg, Typ: accounts.MimetypeTextPlain}}
+		messages := []*apitypes.NameValueType{{Name: "message", Value: msg, Typ: accounts.MimetypeTextPlain}}
 
 		add("SignDataRequest", desc, &core.SignDataRequest{
 			Address:     common.NewMixedcaseAddress(a),

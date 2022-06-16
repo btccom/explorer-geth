@@ -1,4 +1,4 @@
-// Copyright 2019 The go-ethereum Authors
+// Copyright 2020 The go-ethereum Authors
 // This file is part of the go-ethereum library.
 //
 // The go-ethereum library is free software: you can redistribute it and/or modify
@@ -102,7 +102,7 @@ type (
 	}
 )
 
-// This number is the maximum number of neighbor nodes in a Neigbors packet.
+// This number is the maximum number of neighbor nodes in a Neighbors packet.
 const MaxNeighbors = 12
 
 // This code computes the MaxNeighbors constant value.
