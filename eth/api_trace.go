@@ -36,8 +36,8 @@ import (
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/core/vm"
 	"github.com/ethereum/go-ethereum/eth/tracers"
-	"github.com/ethereum/go-ethereum/internal/ethapi"
 	"github.com/ethereum/go-ethereum/eth/tracers/logger"
+	"github.com/ethereum/go-ethereum/internal/ethapi"
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/params"
 	"github.com/ethereum/go-ethereum/rpc"
@@ -371,10 +371,9 @@ func (api *PrivateTraceAPI) traceBlock(ctx context.Context, eth *Ethereum, block
 			for task := range jobs {
 				msg, _ := txs[task.index].AsMessage(signer, block.BaseFee())
 				txctx := &tracers.Context{
-					TxIndex:     task.index,
-					TxHash:      txs[task.index].Hash(),
-					BlockHash:   blockHash,
-					BlockNumber: block.NumberU64(),
+					TxIndex:   task.index,
+					TxHash:    txs[task.index].Hash(),
+					BlockHash: blockHash,
 				}
 				res, err := api.traceTx(ctx, msg, txctx, blockCtx, task.statedb, config)
 				if err != nil {
@@ -420,7 +419,7 @@ func (api *PrivateTraceAPI) traceTx(ctx context.Context, message core.Message, t
 	// Assemble the structured logger or the JavaScript tracer
 	var (
 		tracer    tracers.Tracer
-		l    *logger.StructLogger
+		l         *logger.StructLogger
 		err       error
 		txContext = core.NewEVMTxContext(message)
 	)
@@ -511,10 +510,9 @@ func (api *PrivateTraceAPI) Transaction(ctx context.Context, hash common.Hash, c
 		return nil, err
 	}
 	txctx := &tracers.Context{
-		TxIndex:     int(index),
-		TxHash:      hash,
-		BlockHash:   blockHash,
-		BlockNumber: block.NumberU64(),
+		TxIndex:   int(index),
+		TxHash:    hash,
+		BlockHash: blockHash,
 	}
 	return api.traceTx(ctx, msg, txctx, vmctx, statedb, config)
 }
